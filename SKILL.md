@@ -18,6 +18,7 @@ allowed_tools:
 **Setup**: `/codeglish --init` — run the one-time setup wizard for this codebase.
 **Architecture**: `/codeglish --architecture [path]` — scan every code file in the codebase (or a subdirectory), read each one, and produce a `codeglish-architecture.md` table that lists every file with a plain-English description of what it does. `path` is optional; omit to scan from the project root.
 **Override**: `/codeglish --override <level>` — force explanations at a specific level without changing your XP. Level can be a number (1–12) or a name (e.g. `Practiced`, `Expert`).
+**Help**: `/codeglish --help` — run the triage wizard. Asks what you're trying to do, collects any missing input, then offers to run the right mode immediately.
 **Reset**: `/codeglish --reset exp` — wipe all saved XP levels. `/codeglish --reset override` — clear the active level override.
 
 Also triggers without a slash command on:
@@ -29,6 +30,7 @@ Also triggers without a slash command on:
 
 | Name | Format | Source |
 |------|--------|--------|
+| `--help` flag | literal string `--help` | user message; triggers the triage wizard instead of translation |
 | `--init` flag | literal string `--init` | user message; triggers setup wizard instead of translation |
 | `--override <level>` | `--override` followed by a level number (1–12) or level name | user message; sets a temporary explanation depth override |
 | `--reset exp` | literal string `--reset exp` | user message; wipes all XP instead of translating |
@@ -60,6 +62,8 @@ File-translate mode: emit `File X/6 — <title>` at the start of each step, unco
 Comments mode: emit `Comment X/5 — <title>` at the start of each step, unconditionally.
 Architecture mode: emit `Architecture X/5 — <title>` at the start of each step, unconditionally.
 Override mode: no progress markers — the mode is a single write operation.
+Bare-menu mode: no progress markers — shows the AskUserQuestion menu then re-enters Step 1.
+Help mode: no progress markers — the mode is a triage conversation (3 question rounds).
 
 ## Step-by-step protocol
 
@@ -69,17 +73,28 @@ Step 1 is the only step defined here — it detects the mode and delegates to th
 
 Check the user message for mode flags in this order:
 
+- If the message is bare — `/codeglish` with no flags, no file path, and no inline input — ask via AskUserQuestion:
+  > "What would you like to do?"
+  > - **Explain something** — paste or describe a diff, code snippet, PRD, or plan and I'll translate it to plain English
+  > - **Translate a file** — give me a file path and I'll explain the whole file
+  > - **Add comments to a file** — give me a file path and I'll insert plain-English comments into the code
+  > - **Generate architecture doc** — scan every file in this codebase and produce a table explaining what each one does
+  > - **First-time setup** — run the setup wizard to configure Codeglish for this project
+
+  Map the user's choice to the corresponding mode and re-enter Step 1 from the top with the equivalent flag set. If the user provides additional input alongside their choice (e.g. a file path), treat it as part of that mode's input.
+
+- If `--help` is present → run `protocol/protocol-help.md` instead of Steps 2–6.
 - If `--init` is present → run `protocol/protocol-init.md` instead of Steps 2–6.
 - If `--architecture` is present → extract the optional directory path that follows it (or default to `.`), then run `protocol/protocol-architecture.md` instead of Steps 2–6.
 - If no flag is present but the message contains natural-language architecture intent — phrases like "map out this codebase", "list all files", "document the codebase", "what files are in this project", "give me an overview of the files", "show me the file structure with explanations", "generate an architecture doc", or "what does each file do" → confirm first: ask "It sounds like you want a full-codebase architecture document that lists every file with a plain-English description. Should I run `/codeglish --architecture` now?" (yes/no via AskUserQuestion). If yes, proceed with `protocol/protocol-architecture.md`. If no, fall through to the standard translate path.
 - If `--override` is present → run `protocol/protocol-override.md` instead of Steps 2–6.
 - If any `--reset` variant is present (`--reset exp`, `--reset override`, or bare `--reset`) → run `protocol/protocol-reset.md` and stop.
-- If `--comments` is present → extract the file path that follows it, then run the **Comments protocol** (Steps C1–C5) instead of Steps 2–6.
-- If the input is a file path (and no inline code or diff is present) → run the **File-translate protocol** (Steps F1–F6) instead of Steps 2–6. A file path is recognised by a leading `/`, `./`, `~/`, or a bare string ending in a known extension (`.md`, `.ts`, `.tsx`, `.js`, `.py`, `.go`, `.rs`, `.swift`, `.kt`, `.java`, `.rb`, `.json`, `.yaml`, `.yml`, `.toml`, `.html`, `.css`, `.scss`, `.sh`, `.txt`).
+- If `--comments` is present → extract the file path that follows it. If no file path is given but the IDE context includes a currently open file (signalled by an `ide_opened_file` tag in the conversation context), ask via AskUserQuestion: "Use the file you currently have open (`<ide_opened_file path>`)?" (yes / no, enter a different path). Use the confirmed path, then run the **Comments protocol** (Steps C1–C5) instead of Steps 2–6.
+- If the input is a file path (and no inline code or diff is present) → run the **File-translate protocol** (Steps F1–F6) instead of Steps 2–6. A file path is recognised by a leading `/`, `./`, `~/`, or a bare string ending in a known extension (`.md`, `.ts`, `.tsx`, `.js`, `.py`, `.go`, `.rs`, `.swift`, `.kt`, `.java`, `.rb`, `.json`, `.yaml`, `.yml`, `.toml`, `.html`, `.css`, `.scss`, `.sh`, `.txt`). If the command carries no file path but the IDE context includes a currently open file, ask via AskUserQuestion: "Use the file you currently have open (`<ide_opened_file path>`)?" (yes / no, enter a different path) before entering the File-translate protocol.
 - Otherwise → classify the input as one of: git diff, code snippet, PRD, markdown file, or proposed plan. Identify the primary programming language from syntax, file extension, or diff header. If the input contains no technical content — no code, no diff, no spec — emit this refusal and stop:
   > "Codeglish only works with technical input — diffs, code, specs, plans, or file paths. This doesn't look like one."
 
-Output: `mode` (one of `translate` | `file-translate` | `comments` | `init` | `architecture` | `override` | `reset-override` | `reset-exp` | `reset-hint`), `input_type`, and `language` (when mode is `translate`, `file-translate`, or `comments`).
+Output: `mode` (one of `translate` | `file-translate` | `comments` | `init` | `architecture` | `help` | `override` | `reset-override` | `reset-exp` | `reset-hint` | `bare-menu`), `input_type`, and `language` (when mode is `translate`, `file-translate`, or `comments`).
 
 Steps 2–6 are handled by `protocol/protocol-translate.md`.
 
@@ -89,6 +104,7 @@ Step 1 above is the only logic in SKILL.md. All modes, including the default tra
 
 - `protocol/protocol-translate.md` — default mode; scores complexity, explains, awards XP (6 steps)
 - `protocol/protocol-init.md` — `--init` setup wizard (5 steps)
+- `protocol/protocol-help.md` — `--help` triage wizard; identifies the right mode and offers to run it (3 question rounds)
 - `protocol/protocol-architecture.md` — `--architecture [path]`; scans all code files and generates `codeglish-architecture.md` (5 steps)
 - `protocol/protocol-override.md` — `--override <level>` depth pin
 - `protocol/protocol-reset.md` — `--reset`, `--reset exp`, and `--reset override` branches
