@@ -24,6 +24,7 @@ allowed_tools:
 Also triggers without a slash command on:
 - Natural-language: "explain this", "translate this", "what does this mean", "what changed"
 - Natural-language (architecture): "map out this codebase", "list all files", "document the codebase", "what files are in this project", "give me an overview of the files", "show me the file structure with explanations", "generate an architecture doc", "what does each file do" — when detected, always confirm with the user before proceeding (see Step 1 architecture-NL detection below)
+- Natural-language (simplify): "simplify", "I don't understand", "explain more simply", "dumb it down", "too technical", "in simpler terms", "explain it like I'm five", "make it simpler", "simpler please", "can you simplify that" — when no new technical input is present, triggers simplify mode to re-explain the most recent explanation at a lower level
 - Context: user pastes a git diff, code snippet, PRD, markdown file, or proposed plan alongside a request for a plain-English explanation
 
 ## Inputs
@@ -64,6 +65,7 @@ Architecture mode: emit `Architecture X/5 — <title>` at the start of each step
 Override mode: no progress markers — the mode is a single write operation.
 Bare-menu mode: no progress markers — shows the AskUserQuestion menu then re-enters Step 1.
 Help mode: no progress markers — the mode is a triage conversation (3 question rounds).
+Simplify mode: emit `Simplify X/3 — <title>` at the start of each step, unconditionally.
 
 ## Step-by-step protocol
 
@@ -91,10 +93,11 @@ Check the user message for mode flags in this order:
 - If any `--reset` variant is present (`--reset exp`, `--reset override`, or bare `--reset`) → run `protocol/protocol-reset.md` and stop.
 - If `--comments` is present → extract the file path that follows it. If no file path is given but the IDE context includes a currently open file (signalled by an `ide_opened_file` tag in the conversation context), ask via AskUserQuestion: "Use the file you currently have open (`<ide_opened_file path>`)?" (yes / no, enter a different path). Use the confirmed path, then run the **Comments protocol** (Steps C1–C5) instead of Steps 2–6.
 - If the input is a file path (and no inline code or diff is present) → run the **File-translate protocol** (Steps F1–F6) instead of Steps 2–6. A file path is recognised by a leading `/`, `./`, `~/`, or a bare string ending in a known extension (`.md`, `.ts`, `.tsx`, `.js`, `.py`, `.go`, `.rs`, `.swift`, `.kt`, `.java`, `.rb`, `.json`, `.yaml`, `.yml`, `.toml`, `.html`, `.css`, `.scss`, `.sh`, `.txt`). If the command carries no file path but the IDE context includes a currently open file, ask via AskUserQuestion: "Use the file you currently have open (`<ide_opened_file path>`)?" (yes / no, enter a different path) before entering the File-translate protocol.
+- If the user message signals simplification intent — phrases like "simplify", "explain more simply", "I don't understand", "dumb it down", "too technical", "in simpler terms", "explain it like I'm five", "make it simpler", "simpler please" — AND no new technical input is present (no code, no diff, no file path) → run `protocol/protocol-simplify.md`.
 - Otherwise → classify the input as one of: git diff, code snippet, PRD, markdown file, or proposed plan. Identify the primary programming language from syntax, file extension, or diff header. If the input contains no technical content — no code, no diff, no spec — emit this refusal and stop:
   > "Codeglish only works with technical input — diffs, code, specs, plans, or file paths. This doesn't look like one."
 
-Output: `mode` (one of `translate` | `file-translate` | `comments` | `init` | `architecture` | `help` | `override` | `reset-override` | `reset-exp` | `reset-hint` | `bare-menu`), `input_type`, and `language` (when mode is `translate`, `file-translate`, or `comments`).
+Output: `mode` (one of `translate` | `file-translate` | `comments` | `simplify` | `init` | `architecture` | `help` | `override` | `reset-override` | `reset-exp` | `reset-hint` | `bare-menu`), `input_type`, and `language` (when mode is `translate`, `file-translate`, or `comments`).
 
 Steps 2–6 are handled by `protocol/protocol-translate.md`.
 
@@ -103,6 +106,7 @@ Steps 2–6 are handled by `protocol/protocol-translate.md`.
 Step 1 above is the only logic in SKILL.md. All modes, including the default translate mode, run their steps from a protocol file:
 
 - `protocol/protocol-translate.md` — default mode; scores complexity, explains, awards XP (6 steps)
+- `protocol/protocol-simplify.md` — simplify mode; re-explains the most recent explanation at a reduced level without updating XP (3 steps)
 - `protocol/protocol-init.md` — `--init` setup wizard (5 steps)
 - `protocol/protocol-help.md` — `--help` triage wizard; identifies the right mode and offers to run it (3 question rounds)
 - `protocol/protocol-architecture.md` — `--architecture [path]`; scans all code files and generates `codeglish-architecture.md` (5 steps)
