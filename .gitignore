@@ -2,6 +2,3 @@ codeglish-plan.md
 .claude/
 run/
 refs/schemas.json
-refs/codeglish-exp.json
-refs/codeglish-config.json
-refs/schemas.json
