@@ -143,10 +143,13 @@ Complexity multiplier (tier from `codeglish-heuristic.md`):
 
 | Complexity tier | Multiplier |
 |----------------|-----------|
+| Trivial | ×0.75 |
 | Simple | ×1.0 |
 | Moderate | ×1.5 |
+| Involved | ×1.75 |
 | Complex | ×2.0 |
 | Very Complex | ×3.0 |
+| Intricate | ×4.0 |
 
 Award = round(base XP × multiplier).
 

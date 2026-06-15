@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented here.
 
+## 2026-06-15 (2)
+
+Expanded the complexity tier system from 4 tiers to 7 (Trivial → Simple → Moderate → Involved → Complex → Very Complex → Intricate). The Size scoring dimension now reaches 6 points (up from 4), and Scope gains a full-stack row at 5 points. Every reference file and the SKILL.md entry point was updated to match; new XP multipliers (×0.75 for Trivial, ×1.75 for Involved, ×4.0 for Intricate) were added to the levels ref.
+
+- SKILL.md — update all tier references and heuristic ref description
+- refs/codeglish-heuristic.md — add Trivial/Involved/Intricate tiers, expand Size/Scope scoring, rebalance tier ranges, add worked examples C–G, update permutation exemplars and boundary table
+- refs/codeglish-levels.md — add XP multipliers for Trivial, Involved, and Intricate
+
 ## 2026-06-15
 
 Initial scaffold of the codeglish skill: protocol definitions, reference data, and project tooling.

@@ -37,7 +37,7 @@ Also triggers without a slash command on:
 
 | Name | Format | Destination |
 |------|--------|-------------|
-| `explanation` | plain-English document; structured into parts when complexity is Complex or Very Complex | shown inline |
+| `explanation` | plain-English document; structured into labeled parts when complexity is Complex, Very Complex, or Intricate | shown inline |
 | `xp_update` | JSON write | `refs/codeglish-exp.json` |
 | `level_up_notification` | one-line message appended to explanation | shown inline; omitted if no level-up |
 | `codeglish-config.json` | JSON config written during `--init` | `refs/codeglish-config.json` |
@@ -64,9 +64,9 @@ Output: `mode` (one of `translate` | `init` | `override` | `reset-override` | `r
 
 **Step 2 — Score complexity**
 
-Apply the heuristic from `refs/codeglish-heuristic.md` to the input. Assign one tier: Simple, Moderate, Complex, or Very Complex.
+Apply the heuristic from `refs/codeglish-heuristic.md` to the input. Assign one of the seven tiers: Trivial, Simple, Moderate, Involved, Complex, Very Complex, or Intricate.
 
-Output: `complexity_tier` (one of the four values above).
+Output: `complexity_tier` (one of the seven values above).
 
 **Step 3 — Load XP for the detected language**
 
@@ -86,7 +86,7 @@ Translate the input into a detailed explanation. Apply all four rules:
 
 2. **XP depth**: use `effective_level` from Step 3 to calibrate jargon and analogy density per the "Level → explanation depth" table in `refs/codeglish-levels.md`. The "Depth exemplars" section of that ref shows the same diff rendered across contrasting bands — consult it to calibrate the voice for `effective_level`.
 
-3. **Structure by complexity**: look up `complexity_tier` in the "Output structure by tier" table of `refs/codeglish-heuristic.md` (the same ref applied at Step 2) and follow it — that table governs continuous vs. labeled parts, the per-part (and, for Very Complex, per-sub-section) "does X, so that Y" sentence, and the closing summary paragraph. Examples C and D in that ref show the labeled-parts format. The tier picks the structure; within it, let the dominant scoring dimension steer the emphasis per the "Dimension permutation exemplars" section of the same ref.
+3. **Structure by complexity**: look up `complexity_tier` in the "Output structure by tier" table of `refs/codeglish-heuristic.md` (the same ref applied at Step 2) and follow it — that table governs continuous vs. labeled parts, the per-part (and, for Very Complex and Intricate, per-sub-section) "does X, so that Y" sentence, and the closing summary paragraph. The Complex / Very Complex / Intricate worked examples in that ref show the labeled-parts format. The tier picks the structure; within it, let the dominant scoring dimension steer the emphasis per the "Dimension permutation exemplars" section of the same ref.
 
 4. **Refusal boundary**: never suggest code changes, rewrites, or improvements. If the user asks for a fix or rewrite, explain the code and append:
    > "Codeglish only explains — it doesn't rewrite. Ask Claude directly for that."
@@ -127,7 +127,7 @@ Steps 1–6 above are the default **translate** mode. The other modes live in st
 
 ## References
 
-- `refs/codeglish-heuristic.md` — assigns a complexity tier (Simple / Moderate / Complex / Very Complex) at Step 2, and maps each tier to its output structure at Step 4; also holds the dimension-permutation exemplars (same tier via different dimension mixes) and the dominant-dimension → emphasis table that Step 4 rule 3 draws on
+- `refs/codeglish-heuristic.md` — assigns a complexity tier (Trivial / Simple / Moderate / Involved / Complex / Very Complex / Intricate) at Step 2, and maps each tier to its output structure at Step 4; also holds the dimension-permutation exemplars (same tier via different dimension mixes) and the dominant-dimension → emphasis table that Step 4 rule 3 draws on
 - `refs/codeglish-levels.md` — the XP economy: threshold formula, 12-level table, level→depth mapping, depth exemplars (one diff across several bands) used at Step 4 rule 2, per-run XP award table, and `--init` starting-XP seeds; consulted at Steps 3–5, Override mode, and Init 3
 - `refs/codeglish-exp.json` — persistent XP store; one record per programming language; read at Step 3, written at Step 5
 - `refs/codeglish-config.json` — codebase-level config written by `--init`; read at Init 1 to detect prior setup
