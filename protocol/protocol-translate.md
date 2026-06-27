@@ -6,11 +6,11 @@ type: protocol
 
 # Translate mode
 
-Runs when Step 1 of SKILL.md detects no mode flag and classifies the input as a git diff, code snippet, PRD, markdown file, or proposed plan. Emit `Step X/6 — <title>` at the start of each step, unconditionally.
+Runs when Step 1 of SKILL.md detects no mode flag and classifies the input as a git diff, code snippet, PRD, markdown file, or proposed plan. Step 1 has already emitted `Checking your input…`. Emit `Translating…` once before Step 4 begins; no other progress markers.
 
 ---
 
-**Step 2/6 — Score complexity**
+**Step 2 — Score complexity** *(no progress marker)*
 
 Apply the heuristic from `refs/codeglish-heuristic.md` to the input. Assign one of the seven tiers: Trivial, Simple, Moderate, Involved, Complex, Very Complex, or Intricate.
 
@@ -18,7 +18,7 @@ Output: `complexity_tier` (one of the seven values above).
 
 ---
 
-**Step 3/6 — Load XP for the detected language**
+**Step 3 — Load XP for the detected language** *(no progress marker)*
 
 Read `refs/codeglish-exp.json`. Find the record keyed by `language`. If no record exists, create one: `{ "xp": 0, "level": 1 }`.
 
@@ -30,7 +30,7 @@ Output: `current_level`, `effective_level`, `level_name`, `current_xp`.
 
 ---
 
-**Step 4/6 — Write plain-English output**
+**Step 4 — Write plain-English output** *(emit `Translating…` before this step)*
 
 Translate the input into a detailed explanation. Apply all four rules:
 
@@ -51,7 +51,7 @@ Output: `explanation` (full text, ready to show inline).
 
 ---
 
-**Step 5/6 — Award XP and update memory**
+**Step 5 — Award XP and update memory** *(no progress marker)*
 
 Calculate the XP award using the "XP award per run" table in `refs/codeglish-levels.md`: base XP for the input size × the complexity-tier multiplier, rounded to the nearest whole number. Add it to `current_xp` to get `new_xp`.
 
@@ -63,7 +63,7 @@ Output: `new_xp`, `new_level`, `leveled_up` (boolean).
 
 ---
 
-**Step 6/6 — Show level-up notification**
+**Step 6 — Show level-up notification** *(appended to output; no separate marker)*
 
 If `leveled_up` is true, append to the output:
 > "Level up! You're now Level [N] in [Language]. Explanations will assume a bit more from here."

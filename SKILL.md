@@ -12,14 +12,21 @@ allowed_tools:
 
 ## Usage
 
-**Invoke**: `/codeglish <input>` — paste or attach a git diff, code snippet, PRD, markdown file, or proposed plan.
-**File**: `/codeglish [file path]` — translate a file (markdown, doc, or code) to plain English with a summary. After translation, choose to show only, overwrite the original, or emit a `codeglish-filename.ext` copy.
-**Comments**: `/codeglish --comments [file path]` — explain a code file in Codeglish format, then offer to insert single-line Codeglish comments above functions and classes.
-**Setup**: `/codeglish --init` — run the one-time setup wizard for this codebase.
-**Architecture**: `/codeglish --architecture [path]` — scan every code file in the codebase (or a subdirectory), read each one, and produce a `codeglish-architecture.md` table that lists every file with a plain-English description of what it does. `path` is optional; omit to scan from the project root.
-**Override**: `/codeglish --override <level>` — force explanations at a specific level without changing your XP. Level can be a number (1–12) or a name (e.g. `Practiced`, `Expert`).
-**Help**: `/codeglish --help` — run the triage wizard. Asks what you're trying to do, collects any missing input, then offers to run the right mode immediately.
-**Reset**: `/codeglish --reset exp` — wipe all saved XP levels. `/codeglish --reset override` — clear the active level override.
+```
+/codeglish [args]
+```
+
+| Arg | Description |
+|-----|-------------|
+| `<input>` | Paste a git diff, code snippet, PRD, markdown, or plan inline |
+| `<file_path>` | Path to a file to translate (`.md`, `.ts`, `.py`, `.go`, `.rs`, etc.) |
+| `--comments <file_path>` | Annotate a code file with plain-English comments above each function and class |
+| `--architecture [path]` | Scan every code file in the codebase (or `path`) and produce `codeglish-architecture.md`; `path` defaults to `.` |
+| `--override <level>` | Force explanations at a specific level without changing XP; `level` is a number (1–12) or name (e.g. `Expert`) |
+| `--init` | Run the one-time setup wizard for this codebase |
+| `--help` | Run the triage wizard — describes what you're trying to do and launches the right mode |
+| `--reset exp` | Wipe all saved XP |
+| `--reset override` | Clear the active level override |
 
 Also triggers without a slash command on:
 - Natural-language: "explain this", "translate this", "what does this mean", "what changed"
@@ -57,21 +64,21 @@ Also triggers without a slash command on:
 
 ## Progress emission
 
-Main mode: emit `Step X/6 — <title>` at the start of each step, unconditionally.
+Main (translate) mode: emit only two markers — `Checking your input…` before mode detection and complexity scoring, then `Translating…` before the explanation is written. No per-step counters. Output appears immediately after.
+File-translate mode: same two markers — `Checking your input…` (mode detect + read file) then `Translating…` (complexity, XP, write output).
+Comments mode: emit `Checking your input…` (read file) then `Annotating…` (explain + insert comments).
+Simplify mode: emit `Simplify X/3 — <title>` at the start of each step, unconditionally.
 Init mode: emit `Init X/5 — <title>` at the start of each init step, unconditionally.
-File-translate mode: emit `File X/6 — <title>` at the start of each step, unconditionally.
-Comments mode: emit `Comment X/5 — <title>` at the start of each step, unconditionally.
 Architecture mode: emit `Architecture X/5 — <title>` at the start of each step, unconditionally.
 Override mode: no progress markers — the mode is a single write operation.
 Bare-menu mode: no progress markers — shows the AskUserQuestion menu then re-enters Step 1.
 Help mode: no progress markers — the mode is a triage conversation (3 question rounds).
-Simplify mode: emit `Simplify X/3 — <title>` at the start of each step, unconditionally.
 
 ## Step-by-step protocol
 
 Step 1 is the only step defined here — it detects the mode and delegates to the appropriate protocol file. All translation, XP, and write logic lives in `protocol/`.
 
-**Step 1 — Detect mode**
+**Step 1 — Detect mode** *(emit `Checking your input…` at the start of this step)*
 
 Check the user message for mode flags in this order:
 

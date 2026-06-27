@@ -130,28 +130,30 @@ What changes across bands: jargon, analogy density, and *what the explanation ch
 
 ## XP award per run
 
+XP is earned only for substantive work — trivial input yields no XP. Awards are intentionally small; leveling up takes repeated exposure to real complexity.
+
 Base XP by input size:
 
 | Input size | Base XP |
 |-----------|---------|
-| 1–10 lines | 10 |
-| 11–50 lines | 25 |
-| 51–200 lines | 50 |
-| 200+ lines | 100 |
+| 1–10 lines | 5 |
+| 11–50 lines | 12 |
+| 51–200 lines | 25 |
+| 200+ lines | 50 |
 
 Complexity multiplier (tier from `codeglish-heuristic.md`):
 
 | Complexity tier | Multiplier |
 |----------------|-----------|
-| Trivial | ×0.75 |
-| Simple | ×1.0 |
-| Moderate | ×1.5 |
-| Involved | ×1.75 |
+| Trivial | ×0 |
+| Simple | ×0.5 |
+| Moderate | ×1.0 |
+| Involved | ×1.5 |
 | Complex | ×2.0 |
-| Very Complex | ×3.0 |
-| Intricate | ×4.0 |
+| Very Complex | ×2.5 |
+| Intricate | ×3.5 |
 
-Award = round(base XP × multiplier).
+Award = round(base XP × multiplier). Trivial inputs yield exactly 0 XP — no rounding up.
 
 ## Starting XP for --init
 
