@@ -6,11 +6,11 @@ type: protocol
 
 # File-translate mode
 
-Runs when Step 1 of SKILL.md detects a file path as the primary or sole input (no inline diff or code). Replaces the main Steps 2–6 for this invocation only. Emit `File X/6 — <title>` at the start of each step, unconditionally.
+Runs when Step 1 of SKILL.md detects a file path as the primary or sole input (no inline diff or code). Replaces the main Steps 2–6 for this invocation only. Emit `File X/7 — <title>` at the start of each step, unconditionally.
 
 ---
 
-**File 1/6 — Read and classify the file**
+**File 1/7 — Read and classify the file**
 
 Read the file at the given path using the Read tool. Classify it as one of:
 - `doc-file` — markdown, plain text, or prose documentation (`.md`, `.txt`, `.yaml`, `.toml`, `.json` used as config docs)
@@ -22,7 +22,7 @@ Output: `file_type` (`doc-file` | `code-file`), `language`.
 
 ---
 
-**File 2/6 — Score complexity**
+**File 2/7 — Score complexity**
 
 Apply the heuristic from `refs/codeglish-heuristic.md` to the file contents. Assign one of the seven tiers: Trivial, Simple, Moderate, Involved, Complex, Very Complex, or Intricate.
 
@@ -30,7 +30,7 @@ Output: `complexity_tier`.
 
 ---
 
-**File 3/6 — Load XP**
+**File 3/7 — Load XP**
 
 Same as Step 3 of the main translate protocol. Read `refs/codeglish-exp.json` for the detected language. If no record exists, create one: `{ "xp": 0, "level": 1 }`. Compute `current_level` and `level_name` from the threshold formula in `refs/codeglish-levels.md`. Check `refs/codeglish-config.json` for `override_level`; set `effective_level` accordingly.
 
@@ -38,7 +38,7 @@ Output: `current_level`, `effective_level`, `level_name`, `current_xp`.
 
 ---
 
-**File 4/6 — Translate the file**
+**File 4/7 — Translate the file**
 
 Produce a plain-English translation of the entire file. Structure:
 
@@ -57,7 +57,7 @@ Output: `translation` (full text, shown inline).
 
 ---
 
-**File 5/6 — Offer write options**
+**File 5/7 — Offer write options**
 
 After showing the translation, ask the user to choose one of three options via AskUserQuestion:
 
@@ -74,7 +74,7 @@ Output: chosen option and any file written.
 
 ---
 
-**File 6/6 — Award XP and show level-up**
+**File 6/7 — Award XP and show level-up**
 
 Calculate XP using the "XP award per run" table in `refs/codeglish-levels.md`: base XP for input size × complexity-tier multiplier, rounded to the nearest whole number. Add to `current_xp` to get `new_xp`. Recompute `new_level`. Write `{ "xp": new_xp, "level": new_level }` to `refs/codeglish-exp.json` under the `language` key.
 
@@ -82,3 +82,18 @@ If `new_level > current_level`, append:
 > "Level up! You're now Level [N] in [Language]. Explanations will assume a bit more from here."
 
 Output: `new_xp`, `new_level`; level-up notification if applicable.
+
+---
+
+**File 7/7 — Follow-up prompt**
+
+Ask the user via AskUserQuestion:
+
+> "Want to keep exploring this file?"
+> - **Dive deeper** — ask a follow-up question or focus on a specific part
+> - **Done** — I'm good, thanks
+
+If the user chooses **Dive deeper**: invite them to paste or describe what they'd like to understand further, then re-enter translate mode with the new input.
+If the user chooses **Done**: end with a brief sign-off, e.g. "Come back when you have more to unpack."
+
+Output: user's choice; follow-up input or sign-off.

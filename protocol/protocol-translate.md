@@ -32,7 +32,9 @@ Output: `current_level`, `effective_level`, `level_name`, `current_xp`.
 
 **Step 4 — Write plain-English output** *(emit `Translating…` before this step)*
 
-Translate the input into a detailed explanation. Apply all four rules:
+Translate the input into a detailed explanation. Apply all five rules:
+
+0. **Persona**: write in the voice defined in `SKILL.md` — a principal engineer mentoring a smart adult. Respect the reader's intelligence, explain the why behind every decision, be direct and confident, and flag sharp edges or trade-offs when they matter. This posture holds at every level; only vocabulary and depth shift.
 
 1. **Explanation style**: frame every unit using the pattern "This [thing] does [action], so that [purpose/outcome]." Apply this at the level of the whole input first, and again for each part when breaking down.
 
@@ -68,6 +70,21 @@ Output: `new_xp`, `new_level`, `leveled_up` (boolean).
 If `leveled_up` is true, append to the output:
 > "Level up! You're now Level [N] in [Language]. Explanations will assume a bit more from here."
 
-If `leveled_up` is false, skip this step and end.
+If `leveled_up` is false, skip this step and proceed to Step 7.
 
 Output: final inline response shown to the user.
+
+---
+
+**Step 7 — Follow-up prompt** *(after all output; no separate marker)*
+
+Ask the user via AskUserQuestion:
+
+> "Want to keep exploring this?"
+> - **Dive deeper** — ask a follow-up question or focus on a specific part
+> - **Done** — I'm good, thanks
+
+If the user chooses **Dive deeper**: invite them to paste or describe what they'd like to understand further, then re-enter translate mode with the new input.
+If the user chooses **Done**: end with a brief sign-off, e.g. "Come back when you have more to unpack."
+
+Output: user's choice; follow-up input or sign-off.

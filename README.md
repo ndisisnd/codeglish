@@ -50,4 +50,6 @@ Run `--init` once per project to set your starting level. Use `--help` if you're
 
 Natural-language triggers also work — "explain this", "what changed", "simplify", "map out this codebase", etc.
 
+---
 
+_Dedicated to the love of my life, Joan Chiang, for creating so much wonder despite her non-engineering background_
