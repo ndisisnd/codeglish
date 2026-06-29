@@ -52,4 +52,4 @@ Natural-language triggers also work — "explain this", "what changed", "simplif
 
 ---
 
-_Dedicated to the love of my life, Joan Chiang, for creating so much wonder despite her non-engineering background_
+_Dedicated to the love of my life, JC, for creating so much wonder despite her non-engineering background._
